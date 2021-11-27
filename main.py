@@ -38,7 +38,27 @@ def handle_5_section(las_path):
     other_paths = build_paths(base_dir, [
         'others.dat'
     ])
-    
+    color_value = [0.3, 0.4, 0.5, 0.6, 0.7]
+    section_positions = []
+    colors = []
+    for i in range(5):
+        positions, _ = read_dat(section_dat_paths[i])
+        color = value_into_rgb(np.ones(positions.shape[0])*color_value[i])
+        section_positions.append(positions)
+        colors.append(color)
+    colors = np.concatenate(colors)
+    section_positions = np.concatenate(section_positions)
+    section_intensity = np.ones(section_positions.shape[0])*1500
+
+    othor_positions, _ = read_dat(other_paths[0])
+    white = np.ones((othor_positions.shape[0], 3))*255
+    other_intensity = np.ones(othor_positions.shape[0])*20
+
+    position = np.concatenate((section_positions, othor_positions))
+    intensity = np.concatenate((section_intensity, other_intensity))
+    rgb = np.concatenate((colors, white))
+    write_las(las_path, position, intensity, rgb)
+
 
 
 def handle_points(point_paths, section_dat_paths, other_paths, las_path):
@@ -94,21 +114,24 @@ if __name__ == '__main__':
     # ])
     # handle_section(section_dat_paths, other_paths, las_path)
 
-    base_dir = './data/dc3dc4dc5'
-    las_path = './out/3-3断面dc4测点.las'
-    point_dat_paths = build_paths(base_dir, [
-        '3-3断面dc4测点.dat',
-    ])
-    section_dat_paths = build_paths(base_dir, [
-        '3-3断面dc3测点.dat',
-        '3-3断面dc5测点.dat',
-        '3-3断面其他.dat',
-    ])
-    other_paths = build_paths(base_dir, [
-        '1-1断面.dat',
-        '2-2断面.dat',
-        '4-4断面.dat',
-        '5-5断面.dat',
-        'others.dat',
-    ])
-    handle_points(point_dat_paths, section_dat_paths, other_paths, las_path)
+    # base_dir = './data/dc3dc4dc5'
+    # las_path = './out/3-3断面dc4测点.las'
+    # point_dat_paths = build_paths(base_dir, [
+    #     '3-3断面dc4测点.dat',
+    # ])
+    # section_dat_paths = build_paths(base_dir, [
+    #     '3-3断面dc3测点.dat',
+    #     '3-3断面dc5测点.dat',
+    #     '3-3断面其他.dat',
+    # ])
+    # other_paths = build_paths(base_dir, [
+    #     '1-1断面.dat',
+    #     '2-2断面.dat',
+    #     '4-4断面.dat',
+    #     '5-5断面.dat',
+    #     'others.dat',
+    # ])
+    # handle_points(point_dat_paths, section_dat_paths, other_paths, las_path)
+
+    las_path = './out/5个断面.las'
+    handle_5_section(las_path)
