@@ -92,3 +92,18 @@ def read_dat(file_path, value_index=3):
     positions = np.array(positions, dtype='float32')
     values = np.array(values, dtype='float32')
     return positions, values
+
+def remove_dumplicate(source, target):
+    source_set = set()
+    for line in source:
+        x,y,z = line
+        line_str = f'{x}-{y}-{z}'
+        source_set.add(line_str)
+    new_target = list()
+    for line in target:
+        x,y,z = line
+        line_str = f'{x}-{y}-{z}'
+        if line_str in source_set:
+            continue
+        new_target.append([x, y, z])
+    return np.array(new_target)
