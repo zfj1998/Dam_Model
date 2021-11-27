@@ -2,126 +2,70 @@
 import ipdb
 import numpy as np
 
-from util import read_dat, write_las, build_paths, value_into_rgb
+from util import read_dat, write_las, build_paths, value_into_rgb, build_points
 
+base_dir = './data'
 
-def handle_section(section_dat_paths, other_paths, las_path):
-    '''
-    制作某断面展示模型
-    '''
-    section_positions, _ = read_dat(section_dat_paths[0])
-    for section_dat_path in section_dat_paths[1:]:
-        positions, _ = read_dat(section_dat_path)
-        section_positions = np.concatenate((section_positions, positions))
-    other_positions, _ = read_dat(other_paths[0])
-    for dat_path in other_paths[1:]:
-        positions, _ = read_dat(dat_path)
-        other_positions = np.concatenate((other_positions, positions))
-    rgb = np.ones((section_positions.shape[0] + other_positions.shape[0], 3))*255
-    section_intensity = np.ones(section_positions.shape[0])*1500
-    other_intensity = np.ones(other_positions.shape[0])*10
-    position = np.concatenate((section_positions, other_positions))
-    intensity = np.concatenate((section_intensity, other_intensity))
-    write_las(las_path, position, intensity, rgb)
-
-
-def handle_5_section(las_path):
-    sections = []
-    base_dir = './data/dc3dc4dc5'
+def outter_points():
     section_dat_paths = build_paths(base_dir, [
         '坝顶.dat',
         '底部.dat',
         '上下游面.dat',
     ])
-    other_paths = build_paths(base_dir, [
-        'others.dat'
+    return build_points(section_dat_paths, 101, 'white')
+
+def other_points(exclusive):
+    all_data_paths = build_paths(base_dir, [
+        'NALL.dat',
     ])
-    color_value = [0.3, 0.4, 0.5, 0.6, 0.7]
-    section_positions = []
-    colors = []
-    for i in range(5):
-        positions, _ = read_dat(section_dat_paths[i])
-        color = value_into_rgb(np.ones(positions.shape[0])*color_value[i])
-        section_positions.append(positions)
-        colors.append(color)
-    colors = np.concatenate(colors)
-    section_positions = np.concatenate(section_positions)
-    section_intensity = np.ones(section_positions.shape[0])*1500
-
-    othor_positions, _ = read_dat(other_paths[0])
-    white = np.ones((othor_positions.shape[0], 3))*255
-    other_intensity = np.ones(othor_positions.shape[0])*20
-
-    position = np.concatenate((section_positions, othor_positions))
-    intensity = np.concatenate((section_intensity, other_intensity))
-    rgb = np.concatenate((colors, white))
-    write_las(las_path, position, intensity, rgb)
+    return build_points(all_data_paths, 103, 'white', exclusive)
 
 
-
-def handle_points(point_paths, section_dat_paths, other_paths, las_path):
+def basic_model():
     '''
-    制作某断面某测点群展示模型
+    基本模型展示
     '''
-    point_positions, _ = read_dat(point_paths[0])
-    for point_path in point_paths[1:]:
-        positions, _ = read_dat(point_path)
-        point_positions = np.concatenate((point_positions, positions))
-    section_positions, _ = read_dat(section_dat_paths[0])
-    for section_dat_path in section_dat_paths[1:]:
-        positions, _ = read_dat(section_dat_path)
-        section_positions = np.concatenate((section_positions, positions))
-    other_positions, _ = read_dat(other_paths[0])
-    for dat_path in other_paths[1:]:
-        positions, _ = read_dat(dat_path)
-        other_positions = np.concatenate((other_positions, positions))
-    red = value_into_rgb(np.ones(point_positions.shape[0]))
-    white = np.ones((section_positions.shape[0] + other_positions.shape[0], 3))*255
-    point_intensity = np.ones(point_positions.shape[0])*1500
-    section_intensity = np.ones(section_positions.shape[0])*100
-    other_intensity = np.ones(other_positions.shape[0])*10
-    position = np.concatenate((point_positions, section_positions, other_positions))
-    intensity = np.concatenate((point_intensity, section_intensity, other_intensity))
-    rgb = np.concatenate((red, white))
-    write_las(las_path, position, intensity, rgb)
-
-
-def handle_5_section(las_path):
-    sections = []
-    base_dir = './data/date1'
-    section_dat_paths = build_paths(base_dir, [
-        '坝顶.dat',
-        '底部.dat',
-        '上下游面.dat',
-    ])
-    section_positions = []
-    colors = []
-    for i in range(3):
-        positions, _ = read_dat(section_dat_paths[i])
-        color = np.ones((positions.shape[0], 3))*255
-        section_positions.append(positions)
-        colors.append(color)
-    section_colors = np.concatenate(colors)
-    section_positions = np.concatenate(section_positions)
-    section_intensity = np.ones(section_positions.shape[0])*101
+    las_path = './out/基本模型.las'
+    sec_pos, sec_int, sec_col = outter_points()
 
     heart_dat_paths = build_paths(base_dir, [
         '心墙.dat',
     ])
-    heart_positions, _ = read_dat(heart_dat_paths[0])
-    heart_colors = np.ones((heart_positions.shape[0], 3))*255
-    heart_intensity = np.ones(heart_positions.shape[0])*102
+    ht_pos, ht_int, ht_col = build_points(heart_dat_paths, 102, 'white')
     
-    all_data_paths = build_paths(base_dir, [
-        'NALL.dat',
-    ])
-    all_positions, _ = read_dat(all_data_paths[0])
-    all_colors = np.ones((all_positions.shape[0], 3))*255
-    all_intensity = np.ones(all_positions.shape[0])*103
+    other_than_all_pos = np.concatenate((sec_pos, ht_pos))
+    other_pos, other_int, other_col = other_points(other_than_all_pos)
 
-    position = np.concatenate((section_positions, heart_positions, all_positions))
-    intensity = np.concatenate((section_intensity, heart_intensity, all_intensity))
-    rgb = np.concatenate((section_colors, heart_colors, all_colors))
+    position = np.concatenate((sec_pos, ht_pos, other_pos))
+    intensity = np.concatenate((sec_int, ht_int, other_int))
+    rgb = np.concatenate((sec_col, ht_col, other_col))
+    write_las(las_path, position, intensity, rgb)
+
+def five_sections():
+    '''
+    绘制五个截面
+    '''
+    las_path = './out/五个断面.las'
+    base_dir = './data'
+    outter_pos, outter_int, outter_col = outter_points()
+
+    section1_paths = build_paths(base_dir, ['断面1-1.dat'])
+    sec1_pos, sec1_int, sec1_col = build_points(section1_paths, 104, 'white')
+    section2_paths = build_paths(base_dir, ['断面2-2.dat'])
+    sec2_pos, sec2_int, sec2_col = build_points(section2_paths, 105, 'white')
+    section3_paths = build_paths(base_dir, ['断面3-3.dat'])
+    sec3_pos, sec3_int, sec3_col = build_points(section3_paths, 106, 'white')
+    section4_paths = build_paths(base_dir, ['断面4-4.dat'])
+    sec4_pos, sec4_int, sec4_col = build_points(section4_paths, 107, 'white')
+    section5_paths = build_paths(base_dir, ['断面5-5.dat'])
+    sec5_pos, sec5_int, sec5_col = build_points(section5_paths, 108, 'white')
+
+    other_than_all_pos = np.concatenate((outter_pos, sec1_pos, sec2_pos, sec3_pos, sec4_pos, sec5_pos))
+    other_pos, other_int, other_col = other_points(other_than_all_pos)
+
+    position = np.concatenate((outter_pos, sec1_pos, sec2_pos, sec3_pos, sec4_pos, sec5_pos, other_pos))
+    intensity = np.concatenate((outter_int, sec1_int, sec2_int, sec3_int, sec4_int, sec5_int, other_int))
+    rgb = np.concatenate((outter_col, sec1_col, sec2_col, sec3_col, sec4_col, sec5_col, other_col))
     write_las(las_path, position, intensity, rgb)
 
 
@@ -133,41 +77,4 @@ def handle_force():
 
 
 if __name__ == '__main__':
-    # base_dir = './data/dc3dc4dc5'
-    # las_path = './out/5-5断面.las'
-    # section_dat_paths = build_paths(base_dir, [
-    #     '5-5断面.dat'
-    # ])
-    # other_paths = build_paths(base_dir, [
-    #     '1-1断面.dat',
-    #     '3-3断面dc3测点.dat',
-    #     '3-3断面dc4测点.dat',
-    #     '3-3断面dc5测点.dat',
-    #     '3-3断面其他.dat',
-    #     '2-2断面.dat',
-    #     '4-4断面.dat',
-    #     'others.dat',
-    # ])
-    # handle_section(section_dat_paths, other_paths, las_path)
-
-    # base_dir = './data/dc3dc4dc5'
-    # las_path = './out/3-3断面dc4测点.las'
-    # point_dat_paths = build_paths(base_dir, [
-    #     '3-3断面dc4测点.dat',
-    # ])
-    # section_dat_paths = build_paths(base_dir, [
-    #     '3-3断面dc3测点.dat',
-    #     '3-3断面dc5测点.dat',
-    #     '3-3断面其他.dat',
-    # ])
-    # other_paths = build_paths(base_dir, [
-    #     '1-1断面.dat',
-    #     '2-2断面.dat',
-    #     '4-4断面.dat',
-    #     '5-5断面.dat',
-    #     'others.dat',
-    # ])
-    # handle_points(point_dat_paths, section_dat_paths, other_paths, las_path)
-
-    las_path = './out/带外壳的.las'
-    handle_5_section(las_path)
+    basic_model()

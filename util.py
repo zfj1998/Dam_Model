@@ -1,7 +1,7 @@
 import laspy
 import numpy as np
 import matplotlib as mpl
-
+import ipdb
 
 from_color = np.array(mpl.colors.to_rgb('blue'))
 to_color = np.array(mpl.colors.to_rgb('red'))
@@ -107,3 +107,25 @@ def remove_dumplicate(source, target):
             continue
         new_target.append([x, y, z])
     return np.array(new_target)
+
+def build_points(file_paths, intensity, color, exclusive_xyz=None):
+    '''
+    intensity 为该分区唯一id，整数
+    color为white或0~1之间的值
+    '''
+    positions = []
+    colors = []
+    for i in range(len(file_paths)):
+        position, _ = read_dat(file_paths[i])
+        positions.append(position)
+    positions = np.concatenate(positions)
+
+    if type(exclusive_xyz) != type(None):
+        positions = remove_dumplicate(exclusive_xyz, positions)
+
+    if color == 'white':
+        colors = np.ones((positions.shape[0], 3))*255
+    else:
+        colors = value_into_rgb(np.ones(position.shape[0])*color)
+    intensities = np.ones(positions.shape[0])*intensity
+    return positions, intensities, colors
