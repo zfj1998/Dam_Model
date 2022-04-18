@@ -4,7 +4,7 @@ import matplotlib as mpl
 import ipdb
 
 from_color = np.array(mpl.colors.to_rgb('blue'))
-to_color = np.array(mpl.colors.to_rgb('red'))
+to_color = np.array(mpl.colors.to_rgb('magenta'))
 
 
 def build_paths(base_dir, files):
@@ -129,3 +129,5 @@ def build_points(file_paths, intensity, color, exclusive_xyz=None):
         colors = value_into_rgb(np.ones(position.shape[0])*color)
     intensities = np.ones(positions.shape[0])*intensity
     return positions, intensities, colors
+
+print([value_into_rgb([0.1, 0.3, 0.5, 0.7, 0.9])])
